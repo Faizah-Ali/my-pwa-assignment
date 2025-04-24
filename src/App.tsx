@@ -1,51 +1,66 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import './index.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
 
-  const askNotificationPermission = async () => {
-    const permission = await Notification.requestPermission();
-    if (permission === 'granted') {
-      new Notification('Thanks for allowing notifications! 🎉');
-    } else {
-      alert('You blocked notifications 😢');
+  useEffect(() => {
+    window.addEventListener('online', () => setIsOnline(true));
+    window.addEventListener('offline', () => setIsOnline(false));
+
+    window.addEventListener('beforeinstallprompt', (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    });
+  }, []);
+
+  const handleNotify = () => {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        new Notification('Hello! You enabled notifications 🎉');
+      }
+    });
+  };
+
+  const handleInstall = () => {
+    if (deferredPrompt && 'prompt' in deferredPrompt) {
+      (deferredPrompt as any).prompt();
+      (deferredPrompt as any).userChoice.then(() => {
+        setShowInstallButton(false);
+        setDeferredPrompt(null);
+      });
     }
   };
-  
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+
+    
+    <div className="app">
+
+{!isOnline && (
+  <div className="toast">
+    ⚠️ You're currently offline
+  </div>
+)}
+
+      <h1>My PWA App</h1>
+
+      <div className={`status ${isOnline ? 'online' : 'offline'}`}>
+        {isOnline ? '🟢 Online' : '🔴 Offline'}
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
+
+      <button onClick={handleNotify}>Send Notification</button>
+
+      {showInstallButton && (
+        <button className="install-btn" onClick={handleInstall}>
+          📲 Install App
         </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-
-
-      <button onClick={askNotificationPermission}>
-  Enable Notifications
-</button>
-
-    </>
-  )
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
