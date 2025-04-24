@@ -46,13 +46,10 @@ if ('serviceWorker' in navigator) {
     </li>
   </ol>
 
-  <h2>📸 Mobile Installation Screenshots</h2>
+  <h2>📸 Mobile Installation</h2>
   <p>Users can install the app by clicking the "Install App" button that appears when the app meets PWA requirements.</p>
   <p><strong>Installation Prompt:</strong></p>
-  <img src="./screenshots/install-prompt.png" alt="Install Prompt" />
-  <p><strong>App on Home Screen:</strong></p>
-  <img src="./screenshots/installed-home-screen.png" alt="Home Screen" />
-
+ 
   <h2>✅ Conclusion</h2>
   <p>This project demonstrates how to make a React app a full PWA by enabling offline capabilities, providing install support, and improving mobile usability.</p>
 </body>
