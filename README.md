@@ -3,33 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>PWA Assignment - README</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      margin: 2rem;
-      background: #f8f9fa;
-      color: #333;
-    }
-    h1, h2 {
-      color: #2c3e50;
-    }
-    code {
-      background-color: #eef;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.95em;
-    }
-    ul {
-      padding-left: 1.2rem;
-    }
-    img {
-      max-width: 100%;
-      height: auto;
-      margin-top: 10px;
-    }
-  </style>
+  
 </head>
 <body>
   <h1>📱 Progressive Web App Assignment</h1>
