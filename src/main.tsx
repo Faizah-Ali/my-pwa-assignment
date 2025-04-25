@@ -1,78 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom/client';
+import React, { useEffect, useState } from 'react';
+import ReactDOM from 'react-dom/client'; 
 import './index.css';
 import App from './App';
+import { getMessaging, getToken } from 'firebase/messaging';
+import { initializeApp } from 'firebase/app';
 
-let deferredPrompt: any;
+const firebaseConfig = {
+  apiKey: 'AIzaSyA95rVT7wb9-6O3RsrkJPyxUMlIp819UOc',
+  authDomain: 'my-pwa-app-32e02.firebaseapp.com',
+  projectId: 'my-pwa-app-32e02',
+  storageBucket: 'my-pwa-app-32e02.firebasestorage.app',
+  messagingSenderId: '94238648247',
+  appId: '1:94238648247:web:b3f578d683c5942a766a32',
+  measurementId: 'G-4D7BBNT329'
+};
+
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
 
 const Root = () => {
-  const [showInstall, setShowInstall] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
 
   useEffect(() => {
-   
-    const handleBeforeInstallPrompt = (e: any) => {
-      e.preventDefault(); 
-      deferredPrompt = e;  
-      setShowInstall(true); 
-    };
+    window.addEventListener('online', () => setIsOnline(true));
+    window.addEventListener('offline', () => setIsOnline(false));
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('beforeinstallprompt', (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    });
 
-    
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+ 
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        console.log('Notification permission granted');
+     
+        getToken(messaging, { vapidKey: 'BG5Py4Anm6-RE1faUHCrv3K4vuieHIABVam75R1qQVzAF2PQYm9uCQllEEriseqjnC_kFVxXfdD3vKaLo_3jsQA' }).then((currentToken) => {
+          if (currentToken) {
+            console.log('Current FCM Token:', currentToken);
+           
+          } else {
+            console.log('No token available');
+          }
+        }).catch((err) => {
+          console.log('Error retrieving token:', err);
+        });
+      }
+    });
   }, []);
 
-  const handleInstallClick = () => {
-    
-    if (deferredPrompt) {
-      deferredPrompt.prompt(); 
-      deferredPrompt.userChoice
-        .then((choiceResult: any) => {
-          if (choiceResult.outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-          } else {
-            console.log('User dismissed the install prompt');
-          }
-          deferredPrompt = null; 
-          setShowInstall(false); 
-        })
-        .catch((err: any) => console.log('Error during install prompt:', err));
+  const handleNotify = () => {
+    Notification.requestPermission().then(permission => {
+      if (permission === 'granted') {
+        new Notification('Hello! You enabled notifications 🎉');
+      }
+    });
+  };
+
+  const handleInstall = () => {
+    if (deferredPrompt && 'prompt' in deferredPrompt) {
+      (deferredPrompt as any).prompt();
+      (deferredPrompt as any).userChoice.then(() => {
+        setShowInstallButton(false);
+        setDeferredPrompt(null);
+      });
     }
   };
 
-
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker
-          .register('/sw.js')
-          .then((reg) => {
-            console.log('Service Worker registered:', reg);
-          })
-          .catch((err) => {
-            console.log('Service Worker registration failed:', err);
-          });
-      });
-    }
-  }, []);
-
   return (
-    <div>
-      <App />
-      {showInstall && (
-        <button
-          onClick={handleInstallClick}
-          className="install-btn"
-        >
-          Install App
+    <div className="app">
+      {!isOnline && <div className="toast">⚠️ You're currently offline</div>}
+
+      <h1>My PWA App</h1>
+
+      <div className={`status ${isOnline ? 'online' : 'offline'}`}>
+        {isOnline ? '🟢 Online' : '🔴 Offline'}
+      </div>
+
+      <button onClick={handleNotify}>Send Notification</button>
+
+      {showInstallButton && (
+        <button className="install-btn" onClick={handleInstall}>
+          📲 Install App
         </button>
       )}
     </div>
   );
 };
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <Root />
-);
+
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
+root.render(<Root />);

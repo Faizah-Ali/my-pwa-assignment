@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react';
 import './index.css';
+import {
+  requestFirebaseNotificationPermission,
+  onMessageListener
+} from './firebase';
 
 function App() {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [deferredPrompt, setDeferredPrompt] = useState<Event | null>(null);
   const [showInstallButton, setShowInstallButton] = useState(false);
+  const [notification, setNotification] = useState<any>(null);
 
   useEffect(() => {
     window.addEventListener('online', () => setIsOnline(true));
@@ -15,14 +20,15 @@ function App() {
       setDeferredPrompt(e);
       setShowInstallButton(true);
     });
+
+    onMessageListener().then((payload) => {
+      console.log('Foreground Notification:', payload);
+      setNotification(payload);
+    });
   }, []);
 
   const handleNotify = () => {
-    Notification.requestPermission().then(permission => {
-      if (permission === 'granted') {
-        new Notification('Hello! You enabled notifications 🎉');
-      }
-    });
+    requestFirebaseNotificationPermission();
   };
 
   const handleInstall = () => {
@@ -36,15 +42,8 @@ function App() {
   };
 
   return (
-
-    
     <div className="app">
-
-{!isOnline && (
-  <div className="toast">
-    ⚠️ You're currently offline
-  </div>
-)}
+      {!isOnline && <div className="toast">⚠️ You're currently offline</div>}
 
       <h1>My PWA App</h1>
 
@@ -52,7 +51,14 @@ function App() {
         {isOnline ? '🟢 Online' : '🔴 Offline'}
       </div>
 
-      <button onClick={handleNotify}>Send Notification</button>
+      <button onClick={handleNotify}>Enable Notifications</button>
+
+      {notification && (
+        <div className="notification-box">
+          <strong>{notification?.notification?.title}</strong>
+          <p>{notification?.notification?.body}</p>
+        </div>
+      )}
 
       {showInstallButton && (
         <button className="install-btn" onClick={handleInstall}>
